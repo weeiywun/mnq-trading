@@ -7,7 +7,7 @@ from strategy import ORBStrategy
 from risk_manager import RiskManager
 from notifier import notify_entry, notify_blocked, notify_error
 from alpaca_client import AlpacaClient
-from config import GAS_WEBHOOK_URL, TIMEZONE, MNQ_SYMBOL
+from config import GAS_WEBHOOK_URL, TIMEZONE, SYMBOL
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s [%(levelname)s] %(message)s")
@@ -58,7 +58,7 @@ def main():
         if now.hour >= 11 and now.minute >= 30:
             logger.info("超過監控時間 11:30，今日結束")
             log_to_sheets({"date": str(now.date()), "result": "no_trade",
-                           "symbol": MNQ_SYMBOL})
+                           "symbol": SYMBOL})
             return
 
         signal = strategy.check_signal()
@@ -68,7 +68,7 @@ def main():
                 notify_entry("long", result["entry"], result["tp"], result["sl"])
                 log_to_sheets({
                     "date": str(now.date()),
-                    "symbol": MNQ_SYMBOL,
+                    "symbol": SYMBOL,
                     "side": "long",
                     "entry": result["entry"],
                     "tp": result["tp"],
