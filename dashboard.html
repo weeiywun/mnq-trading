@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QQQ ORB 交易監控</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0c0f;
+    --bg2:       #111318;
+    --bg3:       #181c23;
+    --border:    #1e2530;
+    --gold:      #cca366;
+    --gold-dim:  #7a5e38;
+    --green:     #0F6E56;
+    --green-bright: #1aab82;
+    --red:       #e05555;
+    --red-dim:   #7a2a2a;
+    --text:      #e8e4dc;
+    --text-dim:  #6b7280;
+    --text-mid:  #9ca3af;
+    --mono:      'Space Mono', monospace;
+    --sans:      'Noto Sans TC', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 背景格線效果 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(204,163,102,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(204,163,102,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .header-left h1 {
+    font-family: var(--mono);
+    font-size: clamp(18px, 4vw, 26px);
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+  }
+
+  .header-left .subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    margin-top: 4px;
+    letter-spacing: 0.1em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green-bright);
+    box-shadow: 0 0 8px var(--green-bright);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .last-update {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .refresh-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 640px) {
+    .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold-dim);
+  }
+
+  .kpi-card.positive::before { background: var(--green-bright); }
+  .kpi-card.negative::before { background: var(--red); }
+
+  .kpi-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: var(--mono);
+    font-size: clamp(20px, 4vw, 28px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .kpi-value.positive { color: var(--green-bright); }
+  .kpi-value.negative { color: var(--red); }
+  .kpi-value.gold { color: var(--gold); }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    margin-top: 6px;
+  }
+
+  /* Charts Row */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .charts-row { grid-template-columns: 2fr 1fr; }
+  }
+
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .chart-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .chart-title::before {
+    content: '';
+    width: 3px; height: 12px;
+    background: var(--gold);
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 200px;
+  }
+
+  /* 每日長條圖 */
+  .daily-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 160px;
+    padding-top: 20px;
+  }
+
+  .daily-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .daily-bar {
+    width: 100%;
+    min-height: 2px;
+    transition: opacity 0.2s;
+    position: relative;
+  }
+
+  .daily-bar:hover { opacity: 0.8; }
+
+  .daily-bar-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* Risk Stats */
+  .risk-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .risk-item {
+    text-align: center;
+    padding: 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+  }
+
+  .risk-item-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .risk-item-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Trade Table */
+  .table-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .trade-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .trade-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  .trade-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(30,37,48,0.6);
+    color: var(--text-mid);
+    white-space: nowrap;
+  }
+
+  .trade-table tr:last-child td { border-bottom: none; }
+  .trade-table tr:hover td { background: rgba(204,163,102,0.03); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+
+  .badge.win  { background: rgba(26,171,130,0.15); color: var(--green-bright); }
+  .badge.loss { background: rgba(224,85,85,0.15);  color: var(--red); }
+  .badge.pending { background: rgba(204,163,102,0.15); color: var(--gold); }
+  .badge.no-trade { background: rgba(107,114,128,0.15); color: var(--text-dim); }
+
+  .pnl-positive { color: var(--green-bright); }
+  .pnl-negative { color: var(--red); }
+
+  /* Loading */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 16px;
+    transition: opacity 0.4s;
+  }
+
+  .loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loading-text {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    animation: blink 1s infinite;
+  }
+
+  .loading-bar {
+    width: 200px;
+    height: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .loading-bar-fill {
+    height: 100%;
+    background: var(--gold);
+    animation: loading 1.5s ease-in-out infinite;
+  }
+
+  @keyframes loading {
+    0%   { width: 0%; margin-left: 0%; }
+    50%  { width: 60%; margin-left: 20%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Error banner */
+  .error-banner {
+    background: rgba(224,85,85,0.1);
+    border: 1px solid rgba(224,85,85,0.3);
+    color: var(--red);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .scroll-x { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="loading-text">LOADING TRADE DATA...</div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+</div>
+
+<div class="container">
+  <div class="header">
+    <div class="header-left">
+      <h1>QQQ_ORB // TRADING MONITOR</h1>
+      <div class="subtitle">OPENING RANGE BREAKOUT · PAPER TRADING · 5MIN ORB</div>
+    </div>
+    <div class="header-right">
+      <div class="live-dot"></div>
+      <div class="last-update" id="lastUpdate">--</div>
+      <button class="refresh-btn" onclick="loadData()">↺ REFRESH</button>
+    </div>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <!-- KPI -->
+  <div class="kpi-grid">
+    <div class="kpi-card" id="card-pnl">
+      <div class="kpi-label">TOTAL P&L</div>
+      <div class="kpi-value" id="totalPnl">--</div>
+      <div class="kpi-sub" id="totalPnlSub">--</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">WIN RATE</div>
+      <div class="kpi-value gold" id="winRate">--%</div>
+      <div class="kpi-sub" id="winRateSub">-- / -- TRADES</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">MAX DRAWDOWN</div>
+      <div class="kpi-value" id="maxDD">--</div>
+      <div class="kpi-sub" id="maxDDSub">--</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">TOTAL TRADES</div>
+      <div class="kpi-value gold" id="totalTrades">--</div>
+      <div class="kpi-sub" id="tradeSub">-- WIN · -- LOSS</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">累積損益曲線</div>
+      <div class="chart-wrap">
+        <canvas id="pnlChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">風險統計</div>
+      <div class="risk-grid" id="riskGrid">
+        <div class="risk-item">
+          <div class="risk-item-value" id="maxConsecLoss">--</div>
+          <div class="risk-item-label">MAX CONSEC LOSS</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-value" id="avgWin">--</div>
+          <div class="risk-item-label">AVG WIN $</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-value" id="avgLoss">--</div>
+          <div class="risk-item-label">AVG LOSS $</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-item-value" id="profitFactor">--</div>
+          <div class="risk-item-label">PROFIT FACTOR</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily PnL Bar -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">每日損益</div>
+    <div class="chart-wrap">
+      <canvas id="dailyChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Trade Table -->
+  <div class="table-card">
+    <div class="chart-title">最近交易記錄</div>
+    <div class="scroll-x">
+      <table class="trade-table">
+        <thead>
+          <tr>
+            <th>DATE</th>
+            <th>SIDE</th>
+            <th>ENTRY</th>
+            <th>TP</th>
+            <th>SL</th>
+            <th>ORB RANGE</th>
+            <th>RESULT</th>
+            <th>P&L</th>
+          </tr>
+        </thead>
+        <tbody id="tradeTableBody">
+          <tr><td colspan="8" class="empty">載入中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// 設定：把你的 Google Sheets ID 填在這裡
+// =============================================
+const SHEET_ID   = "1zm46aOuuG10EHWGXub9RRphLaRCkpVV-5luLtuomjQE";
+const SHEET_NAME = "QQQ_Trades";
+const CSV_URL    = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+// =============================================
+// 解析 CSV
+// =============================================
+function parseCSV(text) {
+  const lines = text.trim().split("\n");
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(",").map(h => h.replace(/"/g, "").trim());
+  return lines.slice(1).map(line => {
+    const vals = line.match(/(".*?"|[^,]+|(?<=,)(?=,)|^(?=,)|(?<=,)$)/g) || [];
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = (vals[i] || "").replace(/"/g, "").trim();
+    });
+    return obj;
+  });
+}
+
+// =============================================
+// 計算損益（根據 result 欄位）
+// =============================================
+function calcPnl(row) {
+  const result = (row["Result"] || row["result"] || "").toLowerCase();
+  const entry  = parseFloat(row["Entry"]  || row["entry"]  || 0);
+  const tp     = parseFloat(row["TP"]     || row["tp"]     || 0);
+  const sl     = parseFloat(row["SL"]     || row["sl"]     || 0);
+
+  if (result === "win")  return (tp - entry) * 10; // QQQ 10股
+  if (result === "loss") return (sl - entry) * 10;
+  return 0;
+}
+
+// =============================================
+// 圖表實例
+// =============================================
+let pnlChartInst  = null;
+let dailyChartInst = null;
+
+// =============================================
+// 主資料載入
+// =============================================
+async function loadData() {
+  try {
+    const res = await fetch(CSV_URL + "&t=" + Date.now());
+    if (!res.ok) throw new Error("無法讀取 Sheets 資料");
+    const text = await res.text();
+    const rows = parseCSV(text);
+
+    document.getElementById("errorBanner").style.display = "none";
+    document.getElementById("lastUpdate").textContent =
+      "UPDATED " + new Date().toLocaleTimeString("zh-TW");
+
+    renderDashboard(rows);
+  } catch (e) {
+    const eb = document.getElementById("errorBanner");
+    eb.style.display = "block";
+    eb.textContent = "⚠ 資料載入失敗：" + e.message + "（請確認 Google Sheets 已設為公開）";
+  } finally {
+    document.getElementById("loading").classList.add("hidden");
+  }
+}
+
+function renderDashboard(rows) {
+  // 只處理有 entry 的記錄
+  const trades = rows.filter(r => {
+    const result = (r["Result"] || r["result"] || "").toLowerCase();
+    return result === "win" || result === "loss";
+  });
+
+  const wins   = trades.filter(r => (r["Result"]||r["result"]||"").toLowerCase() === "win");
+  const losses = trades.filter(r => (r["Result"]||r["result"]||"").toLowerCase() === "loss");
+
+  const totalPnl  = trades.reduce((sum, r) => sum + calcPnl(r), 0);
+  const winRate   = trades.length ? (wins.length / trades.length * 100) : 0;
+  const avgWin    = wins.length   ? wins.reduce((s,r)=>s+calcPnl(r),0)/wins.length : 0;
+  const avgLoss   = losses.length ? Math.abs(losses.reduce((s,r)=>s+calcPnl(r),0)/losses.length) : 0;
+  const profitFactor = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : "∞";
+
+  // 最大回撤
+  let peak = 0, maxDD = 0, cumPnl = 0;
+  trades.forEach(r => {
+    cumPnl += calcPnl(r);
+    if (cumPnl > peak) peak = cumPnl;
+    const dd = peak - cumPnl;
+    if (dd > maxDD) maxDD = dd;
+  });
+
+  // 最大連敗
+  let maxConsec = 0, curConsec = 0;
+  trades.forEach(r => {
+    if ((r["Result"]||r["result"]||"").toLowerCase() === "loss") {
+      curConsec++;
+      if (curConsec > maxConsec) maxConsec = curConsec;
+    } else { curConsec = 0; }
+  });
+
+  // KPI
+  const pnlEl = document.getElementById("totalPnl");
+  pnlEl.textContent = (totalPnl >= 0 ? "+$" : "-$") + Math.abs(totalPnl).toFixed(0);
+  pnlEl.className = "kpi-value " + (totalPnl >= 0 ? "positive" : "negative");
+  document.getElementById("card-pnl").className = "kpi-card " + (totalPnl >= 0 ? "positive" : "negative");
+  document.getElementById("totalPnlSub").textContent = trades.length + " 筆已結算";
+
+  document.getElementById("winRate").textContent = winRate.toFixed(1) + "%";
+  document.getElementById("winRateSub").textContent = wins.length + " WIN · " + losses.length + " LOSS";
+
+  const ddEl = document.getElementById("maxDD");
+  ddEl.textContent = "-$" + maxDD.toFixed(0);
+  ddEl.className = "kpi-value " + (maxDD > 0 ? "negative" : "");
+  document.getElementById("maxDDSub").textContent = "最大資金回撤";
+
+  document.getElementById("totalTrades").textContent = trades.length;
+  document.getElementById("tradeSub").textContent = wins.length + " WIN · " + losses.length + " LOSS";
+
+  document.getElementById("maxConsecLoss").textContent = maxConsec;
+  document.getElementById("avgWin").textContent  = "$" + avgWin.toFixed(0);
+  document.getElementById("avgLoss").textContent = "$" + avgLoss.toFixed(0);
+  document.getElementById("profitFactor").textContent = profitFactor;
+
+  // 累積損益曲線
+  const cumData = [];
+  let running = 0;
+  const cumLabels = [];
+  trades.forEach(r => {
+    running += calcPnl(r);
+    cumData.push(running);
+    cumLabels.push(r["Date"] || r["date"] || "");
+  });
+
+  if (pnlChartInst) pnlChartInst.destroy();
+  const pnlCtx = document.getElementById("pnlChart").getContext("2d");
+  const grad = pnlCtx.createLinearGradient(0, 0, 0, 200);
+  grad.addColorStop(0, "rgba(26,171,130,0.3)");
+  grad.addColorStop(1, "rgba(26,171,130,0)");
+  pnlChartInst = new Chart(pnlCtx, {
+    type: "line",
+    data: {
+      labels: cumLabels.length ? cumLabels : ["--"],
+      datasets: [{
+        data: cumData.length ? cumData : [0],
+        borderColor: "#1aab82",
+        backgroundColor: grad,
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: "#1aab82",
+        fill: true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 } }, grid: { color: "#1e2530" } },
+        y: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 }, callback: v => "$" + v }, grid: { color: "#1e2530" } }
+      }
+    }
+  });
+
+  // 每日損益（長條圖）
+  const dailyMap = {};
+  rows.forEach(r => {
+    const date   = r["Date"] || r["date"] || "";
+    const result = (r["Result"]||r["result"]||"").toLowerCase();
+    if (!date) return;
+    if (!dailyMap[date]) dailyMap[date] = 0;
+    if (result === "win" || result === "loss") dailyMap[date] += calcPnl(r);
+  });
+
+  const dailyDates = Object.keys(dailyMap).slice(-20);
+  const dailyVals  = dailyDates.map(d => dailyMap[d]);
+  const dailyColors = dailyVals.map(v => v >= 0 ? "rgba(26,171,130,0.7)" : "rgba(224,85,85,0.7)");
+
+  if (dailyChartInst) dailyChartInst.destroy();
+  const dCtx = document.getElementById("dailyChart").getContext("2d");
+  dailyChartInst = new Chart(dCtx, {
+    type: "bar",
+    data: {
+      labels: dailyDates.length ? dailyDates : ["--"],
+      datasets: [{
+        data: dailyVals.length ? dailyVals : [0],
+        backgroundColor: dailyColors,
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 } }, grid: { color: "#1e2530" } },
+        y: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 }, callback: v => "$" + v }, grid: { color: "#1e2530" } }
+      }
+    }
+  });
+
+  // 交易記錄表格（最近20筆，倒序）
+  const tbody = document.getElementById("tradeTableBody");
+  const recent = [...rows].reverse().slice(0, 20);
+
+  if (recent.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">尚無交易記錄</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = recent.map(r => {
+    const result = (r["Result"]||r["result"]||"").toLowerCase();
+    const pnl    = calcPnl(r);
+    const pnlStr = result === "win" || result === "loss"
+      ? `<span class="${pnl>=0?'pnl-positive':'pnl-negative'}">${pnl>=0?'+':''}\$${pnl.toFixed(0)}</span>`
+      : "--";
+    const badgeClass = result === "win" ? "win" : result === "loss" ? "loss" : result === "no_trade" ? "no-trade" : "pending";
+    const badgeText  = result === "win" ? "WIN" : result === "loss" ? "LOSS" : result === "no_trade" ? "NO TRADE" : result.toUpperCase() || "PENDING";
+    const orbRange   = r["ORB_Range"] || r["orb_range"] || "--";
+    const entry      = r["Entry"] || r["entry"] || "--";
+    const tp         = r["TP"]    || r["tp"]    || "--";
+    const sl         = r["SL"]    || r["sl"]    || "--";
+    const date       = r["Date"]  || r["date"]  || "--";
+    const side       = (r["Side"] || r["side"]  || "--").toUpperCase();
+
+    return `<tr>
+      <td>${date}</td>
+      <td>${side}</td>
+      <td>${entry !== "--" ? parseFloat(entry).toFixed(2) : "--"}</td>
+      <td>${tp   !== "--" ? parseFloat(tp).toFixed(2)    : "--"}</td>
+      <td>${sl   !== "--" ? parseFloat(sl).toFixed(2)    : "--"}</td>
+      <td>${orbRange !== "--" ? parseFloat(orbRange).toFixed(2) : "--"}</td>
+      <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+      <td>${pnlStr}</td>
+    </tr>`;
+  }).join("");
+}
+
+// 初始載入
+loadData();
+</script>
+</body>
+</html>
