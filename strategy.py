@@ -1,36 +1,32 @@
 from alpaca_client import AlpacaClient
-from config import *
+from config import SYMBOL, ORB_MINUTES, SHARE_QTY
 import logging
 
 logger = logging.getLogger(__name__)
 
 class ORBStrategy:
-    """Opening Range Breakout for MNQ"""
+    """Opening Range Breakout for QQQ"""
 
     def __init__(self):
-        self.client = AlpacaClient()
-        self.orb = None          # {"high": x, "low": y}
+        self.client      = AlpacaClient()
+        self.orb         = None
         self.trade_placed = False
 
     def setup_orb(self) -> bool:
-        """取得 ORB 高低點，成功回傳 True"""
-        candle = self.client.get_orb_candle(MNQ_SYMBOL, ORB_MINUTES)
+        candle = self.client.get_orb_candle(SYMBOL, ORB_MINUTES)
         if candle:
             self.orb = candle
-            logger.info(f"ORB 設定完成 | High: {candle['high']} | Low: {candle['low']}")
+            orb_range = round(candle["high"] - candle["low"], 2)
+            logger.info(f"ORB 完成 | High: {candle['high']} | Low: {candle['low']} | Range: {orb_range}")
             return True
         return False
 
     def check_signal(self) -> str | None:
-        """
-        回傳 'long' / None
-        目前策略只做突破高點做多
-        """
         if not self.orb or self.trade_placed:
             return None
 
-        price = self.client.get_latest_price(MNQ_SYMBOL)
-        logger.info(f"Current price: {price} | ORB High: {self.orb['high']}")
+        price = self.client.get_latest_price(SYMBOL)
+        logger.info(f"現價: {price} | ORB High: {self.orb['high']}")
 
         if price > self.orb["high"]:
             return "long"
@@ -38,23 +34,28 @@ class ORBStrategy:
         return None
 
     def execute_long(self) -> dict:
-        """進場做多，帶 TP/SL"""
-        entry = self.client.get_latest_price(MNQ_SYMBOL)
-        tp = entry + TARGET_POINTS
-        sl = entry - STOP_POINTS
+        entry     = self.client.get_latest_price(SYMBOL)
+        orb_range = self.orb["high"] - self.orb["low"]
 
-        logger.info(f"進場 LONG | Entry≈{entry} | TP={tp} | SL={sl}")
+        # TP/SL 依 ORB range 計算（1:1）
+        tp = round(entry + orb_range, 2)
+        sl = round(entry - orb_range, 2)
+
+        logger.info(f"進場 LONG | Entry≈{entry} | TP={tp} | SL={sl} | Range={orb_range:.2f}")
+
         result = self.client.place_bracket_order(
-            symbol=MNQ_SYMBOL,
+            symbol=SYMBOL,
             side="buy",
-            qty=CONTRACT_QTY,
+            qty=SHARE_QTY,
             take_profit=tp,
             stop_loss=sl,
         )
+
         self.trade_placed = True
         return {
-            "entry": entry,
-            "tp": tp,
-            "sl": sl,
-            "order": result,
+            "entry":     entry,
+            "tp":        tp,
+            "sl":        sl,
+            "orb_range": round(orb_range, 2),
+            "order":     result,
         }
