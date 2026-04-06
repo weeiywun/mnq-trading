@@ -2,7 +2,7 @@ name: MNQ Paper Trading
 
 on:
   schedule:
-    - cron: "36 13 * * 1-5"
+    - cron: "36 13 * * 1-5"   # 夏令時 ET 9:36 AM = UTC 13:36
   workflow_dispatch:
 
 jobs:
