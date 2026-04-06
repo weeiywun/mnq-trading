@@ -20,10 +20,9 @@ jobs:
 
       - name: Run Strategy
         env:
-          ALPACA_API_KEY:    ${{ secrets.ALPACA_API_KEY }}
-          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-          LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
-          LINE_USER_ID:      ${{ secrets.LINE_USER_ID }}
+          ALPACA_API_KEY:    ${{ PK5BBCPZBRC3WXKMMGIIZ6XRJB }}
+          ALPACA_SECRET_KEY: ${{ 6D3mnSyFdg4C1srpqhd8gEcBAXuXvUeTAyd3W3uUpLKu }}
+          LINE_CHANNEL_TOKEN: ${{ SSkg41zTx0v7rjsVanEu/xKwGKYENVZBPgSZy4fx+uREDyK4Yqa5aNE9przHgziXp4fkWRfxTNvJIgI4hoY2kJ/i5AoWHyyw9rqrSCmu4bDDlyNUAyHl5zVPWHO2hMkThmMSDfZvSwx5jUO7WGeZqgdB04t89/1O/w1cDnyilFU= }}
+          LINE_USER_ID:      ${{ Ucd226d49291014f5badd10cd82257990 }}
           GAS_WEBHOOK_URL:   ${{ secrets.GAS_WEBHOOK_URL }}
-          MNQ_SYMBOL:        ${{ vars.MNQ_SYMBOL }}
         run: python main.py
