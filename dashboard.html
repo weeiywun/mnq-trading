@@ -8,19 +8,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #0a0c0f;
-    --bg2:       #111318;
-    --bg3:       #181c23;
-    --border:    #1e2530;
-    --gold:      #cca366;
-    --gold-dim:  #7a5e38;
+    --bg:        #12151c;
+    --bg2:       #1a1e28;
+    --bg3:       #222736;
+    --border:    #2e3548;
+    --gold:      #e8b96a;
+    --gold-dim:  #9a7040;
     --green:     #0F6E56;
-    --green-bright: #1aab82;
-    --red:       #e05555;
-    --red-dim:   #7a2a2a;
-    --text:      #e8e4dc;
-    --text-dim:  #6b7280;
-    --text-mid:  #9ca3af;
+    --green-bright: #22c993;
+    --red:       #f06060;
+    --red-dim:   #8a3030;
+    --text:      #f0ece4;
+    --text-dim:  #8a95a8;
+    --text-mid:  #b8c0cc;
     --mono:      'Space Mono', monospace;
     --sans:      'Noto Sans TC', sans-serif;
   }
@@ -41,8 +41,8 @@
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(204,163,102,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(204,163,102,0.03) 1px, transparent 1px);
+      linear-gradient(rgba(232,185,106,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,185,106,0.05) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -78,7 +78,7 @@
 
   .header-left .subtitle {
     font-size: 12px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     font-family: var(--mono);
     margin-top: 4px;
     letter-spacing: 0.1em;
@@ -106,7 +106,7 @@
   .last-update {
     font-family: var(--mono);
     font-size: 11px;
-    color: var(--text-dim);
+    color: var(--text-mid);
   }
 
   .refresh-btn {
@@ -160,7 +160,7 @@
 
   .kpi-label {
     font-size: 10px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     font-family: var(--mono);
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -181,7 +181,7 @@
 
   .kpi-sub {
     font-size: 11px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     font-family: var(--mono);
     margin-top: 6px;
   }
@@ -207,7 +207,7 @@
   .chart-title {
     font-family: var(--mono);
     font-size: 11px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     letter-spacing: 0.12em;
     text-transform: uppercase;
     margin-bottom: 16px;
@@ -285,7 +285,7 @@
 
   .risk-item-label {
     font-size: 10px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     font-family: var(--mono);
     margin-top: 4px;
     letter-spacing: 0.08em;
@@ -310,7 +310,7 @@
     text-align: left;
     padding: 8px 10px;
     font-size: 10px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     letter-spacing: 0.1em;
     border-bottom: 1px solid var(--border);
     font-weight: 400;
@@ -396,7 +396,7 @@
   .empty {
     text-align: center;
     padding: 40px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     font-family: var(--mono);
     font-size: 12px;
     letter-spacing: 0.08em;
@@ -522,7 +522,7 @@
   .input-label {
     font-family: var(--mono);
     font-size: 10px;
-    color: var(--text-dim);
+    color: var(--text-mid);
     letter-spacing: 0.1em;
   }
 
@@ -669,7 +669,7 @@
     <div class="line-section">
       <!-- 預覽泡泡 -->
       <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:10px;">MESSAGE PREVIEW</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-mid);letter-spacing:0.1em;margin-bottom:10px;">MESSAGE PREVIEW</div>
         <div class="line-bubble">
           <div class="line-bubble-header">
             <span class="icon">📊</span>
@@ -717,6 +717,10 @@
       <!-- 測試控制 -->
       <div class="test-controls">
         <div class="input-group">
+          <div class="input-label">GAS WEBHOOK URL</div>
+          <input class="input-field" id="inp-gas" type="text" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div class="input-group">
           <div class="input-label">LINE CHANNEL TOKEN</div>
           <input class="input-field" id="inp-token" type="password" placeholder="你的 Channel Access Token">
         </div>
@@ -738,7 +742,7 @@
           <span>💬</span> 發送 LINE 測試通知
         </button>
         <div class="send-result" id="sendResult"></div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.8;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-mid);line-height:1.8;">
           ⚠ TOKEN 僅在瀏覽器本地呼叫 LINE API，不經過任何中間伺服器。
         </div>
       </div>
@@ -930,8 +934,8 @@ function renderDashboard(rows) {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 } }, grid: { color: "#1e2530" } },
-        y: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 }, callback: v => "$" + v }, grid: { color: "#1e2530" } }
+        x: { ticks: { color: "#8a95a8", font: { family: "Space Mono", size: 10 } }, grid: { color: "#2e3548" } },
+        y: { ticks: { color: "#8a95a8", font: { family: "Space Mono", size: 10 }, callback: v => "$" + v }, grid: { color: "#1e2530" } }
       }
     }
   });
@@ -966,8 +970,8 @@ function renderDashboard(rows) {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 } }, grid: { color: "#1e2530" } },
-        y: { ticks: { color: "#6b7280", font: { family: "Space Mono", size: 10 }, callback: v => "$" + v }, grid: { color: "#1e2530" } }
+        x: { ticks: { color: "#8a95a8", font: { family: "Space Mono", size: 10 } }, grid: { color: "#2e3548" } },
+        y: { ticks: { color: "#8a95a8", font: { family: "Space Mono", size: 10 }, callback: v => "$" + v }, grid: { color: "#1e2530" } }
       }
     }
   });
@@ -1128,20 +1132,29 @@ async function sendTestNotify() {
     }
   };
 
+  // 透過 GAS proxy 呼叫（避免 CORS）
+  const gasUrl = document.getElementById("inp-gas").value.trim();
+  if (!gasUrl) { showResult("err", "⚠ 請填入 GAS Webhook URL"); btn.disabled=false; btn.innerHTML="<span>💬</span> 發送 LINE 測試通知"; return; }
+
   try {
-    const res = await fetch("https://api.line.me/v2/bot/message/push", {
+    const payload = {
+      action: "line_test",
+      token: token,
+      userId: userId,
+      flexMsg: flexMsg
+    };
+    const res = await fetch(gasUrl, {
       method: "POST",
-      headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
-      body: JSON.stringify({ to: userId, messages: [flexMsg] })
+      body: JSON.stringify(payload)
     });
-    if (res.ok) {
+    const result = await res.json();
+    if (result.status === "ok") {
       showResult("ok", "✅ 發送成功！請確認 LINE 是否收到訊息。");
     } else {
-      const err = await res.json();
-      showResult("err", "❌ 失敗：" + (err.message || res.status));
+      showResult("err", "❌ 失敗：" + (result.message || JSON.stringify(result)));
     }
   } catch (e) {
-    showResult("err", "❌ 網路錯誤：" + e.message);
+    showResult("err", "❌ 錯誤：" + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = "<span>💬</span> 發送 LINE 測試通知";
