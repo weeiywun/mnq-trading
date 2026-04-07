@@ -36,8 +36,8 @@ def main():
     now = datetime.now(tz)
 
     # 非交易時段直接結束（只在 9:30 ~ 11:30 AM ET 執行）
-    market_open  = now.replace(hour=9,  minute=30, second=0, microsecond=0)
-    market_close = now.replace(hour=11, minute=30, second=0, microsecond=0)
+    market_open  = now.replace(hour=9,  minute=0,  second=0, microsecond=0)
+    market_close = now.replace(hour=12, minute=30, second=0, microsecond=0)
 
     if now < market_open or now > market_close:
         logger.info(f"非交易時段 ({now.strftime('%H:%M')} ET)，今日結束")
