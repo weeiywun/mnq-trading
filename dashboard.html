@@ -1017,14 +1017,12 @@ function renderDashboard(rows) {
 // LINE 通知測試功能
 // =============================================
 
-async function fetchQQQPrice() {
+async function fetchQQQPrice(gasUrl) {
+  if (!gasUrl) return null;
   try {
-    const res = await fetch(
-      "https://query1.finance.yahoo.com/v8/finance/chart/QQQ?interval=1m&range=1d"
-    );
+    const res = await fetch(gasUrl + "?action=price");
     const data = await res.json();
-    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-    return price ? parseFloat(price).toFixed(2) : null;
+    return data.price ? parseFloat(data.price).toFixed(2) : null;
   } catch { return null; }
 }
 
@@ -1065,7 +1063,12 @@ async function sendTestNotify() {
   const now    = new Date();
   const tp     = (entry + range).toFixed(2);
   const sl     = (entry - range).toFixed(2);
-  const price  = document.getElementById("prev-price").textContent.replace("$","");
+  const gasUrl = document.getElementById("inp-gas").value.trim();
+  if (!gasUrl) { showResult("err", "⚠ 請填入 GAS Webhook URL"); btn.disabled=false; btn.innerHTML="<span>💬</span> 發送 LINE 測試通知"; return; }
+
+  const fetchedPrice = await fetchQQQPrice(gasUrl);
+  if (fetchedPrice) document.getElementById("prev-price").textContent = "$" + fetchedPrice;
+  const price = fetchedPrice || document.getElementById("prev-price").textContent.replace("$","") || "--";
   const timeET = now.toLocaleTimeString("zh-TW", {
     timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false
   }) + " ET";
@@ -1132,10 +1135,6 @@ async function sendTestNotify() {
     }
   };
 
-  // 透過 GAS proxy 呼叫（避免 CORS）
-  const gasUrl = document.getElementById("inp-gas").value.trim();
-  if (!gasUrl) { showResult("err", "⚠ 請填入 GAS Webhook URL"); btn.disabled=false; btn.innerHTML="<span>💬</span> 發送 LINE 測試通知"; return; }
-
   try {
     const payload = {
       action: "line_test",
@@ -1170,8 +1169,6 @@ function showResult(type, msg) {
 
 async function init() {
   updatePreview();
-  const price = await fetchQQQPrice();
-  document.getElementById("prev-price").textContent = price ? "$" + price : "市場休市";
 }
 
 // 初始載入
