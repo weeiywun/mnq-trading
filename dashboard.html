@@ -415,6 +415,167 @@
   }
 
   .scroll-x { overflow-x: auto; }
+
+  /* LINE Test Section */
+  .line-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .line-section { grid-template-columns: 1fr 1fr; }
+  }
+
+  .line-preview {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 4px;
+    padding: 16px;
+    position: relative;
+  }
+
+  .line-bubble {
+    background: #ffffff;
+    border-radius: 0 12px 12px 12px;
+    padding: 0;
+    max-width: 280px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .line-bubble-header {
+    background: #0F6E56;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .line-bubble-header .icon { font-size: 16px; }
+
+  .line-bubble-header .title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    font-family: var(--sans);
+  }
+
+  .line-bubble-body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .line-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .line-label {
+    font-size: 11px;
+    color: #888;
+    font-family: var(--sans);
+  }
+
+  .line-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: #222;
+    font-family: var(--mono);
+  }
+
+  .line-val.up   { color: #0F6E56; }
+  .line-val.down { color: #e05555; }
+
+  .line-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 2px 0;
+  }
+
+  .line-footer {
+    background: #f7f7f7;
+    padding: 8px 16px;
+    font-size: 10px;
+    color: #aaa;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+  }
+
+  /* Test controls */
+  .test-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .input-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .input-field {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    width: 100%;
+    outline: none;
+  }
+
+  .input-field:focus { border-color: var(--gold); }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .send-btn {
+    background: #06C755;
+    border: none;
+    color: #fff;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .send-btn:hover { background: #05a847; }
+  .send-btn:disabled { background: #2a5a35; color: #666; cursor: not-allowed; }
+
+  .send-result {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 12px;
+    display: none;
+    border: 1px solid;
+  }
+
+  .send-result.ok  { background: rgba(26,171,130,0.1); border-color: var(--green-bright); color: var(--green-bright); }
+  .send-result.err { background: rgba(224,85,85,0.1);  border-color: var(--red); color: var(--red); }
 </style>
 </head>
 <body>
@@ -499,6 +660,88 @@
     <div class="chart-title">每日損益</div>
     <div class="chart-wrap">
       <canvas id="dailyChart"></canvas>
+    </div>
+  </div>
+
+  <!-- LINE 通知測試 -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div class="chart-title">LINE 通知測試</div>
+    <div class="line-section">
+      <!-- 預覽泡泡 -->
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:10px;">MESSAGE PREVIEW</div>
+        <div class="line-bubble">
+          <div class="line-bubble-header">
+            <span class="icon">📊</span>
+            <span class="title">QQQ ORB 交易訊號</span>
+          </div>
+          <div class="line-bubble-body">
+            <div class="line-row">
+              <span class="line-label">標的</span>
+              <span class="line-val">QQQ</span>
+            </div>
+            <div class="line-row">
+              <span class="line-label">目前價格</span>
+              <span class="line-val up" id="prev-price">載入中...</span>
+            </div>
+            <div class="line-divider"></div>
+            <div class="line-row">
+              <span class="line-label">方向</span>
+              <span class="line-val up" id="prev-side">LONG 🟢</span>
+            </div>
+            <div class="line-row">
+              <span class="line-label">開倉價位</span>
+              <span class="line-val" id="prev-entry">--</span>
+            </div>
+            <div class="line-row">
+              <span class="line-label">開倉時間</span>
+              <span class="line-val" id="prev-time">--</span>
+            </div>
+            <div class="line-divider"></div>
+            <div class="line-row">
+              <span class="line-label">止盈 TP</span>
+              <span class="line-val up" id="prev-tp">--</span>
+            </div>
+            <div class="line-row">
+              <span class="line-label">止損 SL</span>
+              <span class="line-val down" id="prev-sl">--</span>
+            </div>
+            <div class="line-row">
+              <span class="line-label">ORB Range</span>
+              <span class="line-val" id="prev-range">--</span>
+            </div>
+          </div>
+          <div class="line-footer" id="prev-footer">-- / QQQ ORB SYSTEM</div>
+        </div>
+      </div>
+      <!-- 測試控制 -->
+      <div class="test-controls">
+        <div class="input-group">
+          <div class="input-label">LINE CHANNEL TOKEN</div>
+          <input class="input-field" id="inp-token" type="password" placeholder="你的 Channel Access Token">
+        </div>
+        <div class="input-group">
+          <div class="input-label">LINE USER ID</div>
+          <input class="input-field" id="inp-userid" type="text" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+        </div>
+        <div class="input-row">
+          <div class="input-group">
+            <div class="input-label">開倉價（模擬）</div>
+            <input class="input-field" id="inp-entry" type="number" placeholder="480.00" step="0.01" oninput="updatePreview()">
+          </div>
+          <div class="input-group">
+            <div class="input-label">ORB Range</div>
+            <input class="input-field" id="inp-range" type="number" placeholder="2.50" step="0.01" oninput="updatePreview()">
+          </div>
+        </div>
+        <button class="send-btn" id="sendBtn" onclick="sendTestNotify()">
+          <span>💬</span> 發送 LINE 測試通知
+        </button>
+        <div class="send-result" id="sendResult"></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);line-height:1.8;">
+          ⚠ TOKEN 僅在瀏覽器本地呼叫 LINE API，不經過任何中間伺服器。
+        </div>
+      </div>
     </div>
   </div>
 
@@ -766,8 +1009,161 @@ function renderDashboard(rows) {
   }).join("");
 }
 
+// =============================================
+// LINE 通知測試功能
+// =============================================
+
+async function fetchQQQPrice() {
+  try {
+    const res = await fetch(
+      "https://query1.finance.yahoo.com/v8/finance/chart/QQQ?interval=1m&range=1d"
+    );
+    const data = await res.json();
+    const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+    return price ? parseFloat(price).toFixed(2) : null;
+  } catch { return null; }
+}
+
+function updatePreview() {
+  const entry = parseFloat(document.getElementById("inp-entry").value) || null;
+  const range = parseFloat(document.getElementById("inp-range").value) || null;
+  const now   = new Date();
+  const timeStr = now.toLocaleTimeString("zh-TW", {
+    timeZone: "America/New_York",
+    hour: "2-digit", minute: "2-digit", hour12: false
+  }) + " ET";
+  document.getElementById("prev-time").textContent = timeStr;
+  if (entry && range) {
+    const tp = (entry + range).toFixed(2);
+    const sl = (entry - range).toFixed(2);
+    document.getElementById("prev-entry").textContent = entry.toFixed(2);
+    document.getElementById("prev-tp").textContent    = tp + " (+" + range.toFixed(2) + ")";
+    document.getElementById("prev-sl").textContent    = sl + " (-" + range.toFixed(2) + ")";
+    document.getElementById("prev-range").textContent = range.toFixed(2);
+  }
+  const dateStr = now.toLocaleDateString("zh-TW", { timeZone: "America/New_York" });
+  document.getElementById("prev-footer").textContent = dateStr + " / QQQ ORB SYSTEM";
+}
+
+async function sendTestNotify() {
+  const token  = document.getElementById("inp-token").value.trim();
+  const userId = document.getElementById("inp-userid").value.trim();
+  const entry  = parseFloat(document.getElementById("inp-entry").value);
+  const range  = parseFloat(document.getElementById("inp-range").value);
+
+  if (!token || !userId) { showResult("err", "⚠ 請填入 LINE Token 和 User ID"); return; }
+  if (!entry || !range)  { showResult("err", "⚠ 請填入開倉價和 ORB Range"); return; }
+
+  const btn = document.getElementById("sendBtn");
+  btn.disabled = true;
+  btn.textContent = "發送中...";
+
+  const now    = new Date();
+  const tp     = (entry + range).toFixed(2);
+  const sl     = (entry - range).toFixed(2);
+  const price  = document.getElementById("prev-price").textContent.replace("$","");
+  const timeET = now.toLocaleTimeString("zh-TW", {
+    timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false
+  }) + " ET";
+  const dateStr = now.toLocaleDateString("zh-TW", { timeZone: "America/New_York" });
+
+  const flexMsg = {
+    type: "flex",
+    altText: "QQQ 交易訊號 | LONG " + entry + " TP " + tp + " SL " + sl,
+    contents: {
+      type: "bubble", size: "kilo",
+      header: {
+        type: "box", layout: "horizontal", paddingAll: "14px",
+        backgroundColor: "#0F6E56",
+        contents: [
+          { type: "text", text: "📊  QQQ ORB 交易訊號", color: "#ffffff", weight: "bold", size: "md" }
+        ]
+      },
+      body: {
+        type: "box", layout: "vertical", spacing: "sm", paddingAll: "14px",
+        contents: [
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "標的",     color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: "QQQ",      color: "#222222", size: "sm", weight: "bold", align: "end" }
+          ]},
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "目前價格", color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: "$" + price, color: "#0F6E56", size: "sm", weight: "bold", align: "end" }
+          ]},
+          { type: "separator", margin: "sm" },
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "方向",     color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: "LONG 🟢",  color: "#0F6E56", size: "sm", weight: "bold", align: "end" }
+          ]},
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "開倉價位", color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: "$" + entry.toFixed(2), color: "#222222", size: "sm", weight: "bold", align: "end" }
+          ]},
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "開倉時間", color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: timeET,     color: "#222222", size: "sm", align: "end" }
+          ]},
+          { type: "separator", margin: "sm" },
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "止盈 TP",  color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: "$" + tp + "  (+" + range.toFixed(2) + ")", color: "#0F6E56", size: "sm", weight: "bold", align: "end" }
+          ]},
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "止損 SL",  color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: "$" + sl + "  (-" + range.toFixed(2) + ")", color: "#e05555", size: "sm", weight: "bold", align: "end" }
+          ]},
+          { type: "box", layout: "horizontal", contents: [
+            { type: "text", text: "ORB Range", color: "#888888", size: "sm", flex: 1 },
+            { type: "text", text: range.toFixed(2) + " pts", color: "#222222", size: "sm", align: "end" }
+          ]}
+        ]
+      },
+      footer: {
+        type: "box", layout: "horizontal", paddingAll: "10px",
+        backgroundColor: "#f7f7f7",
+        contents: [
+          { type: "text", text: dateStr + " / QQQ ORB SYSTEM", color: "#aaaaaa", size: "xxs" }
+        ]
+      }
+    }
+  };
+
+  try {
+    const res = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+      body: JSON.stringify({ to: userId, messages: [flexMsg] })
+    });
+    if (res.ok) {
+      showResult("ok", "✅ 發送成功！請確認 LINE 是否收到訊息。");
+    } else {
+      const err = await res.json();
+      showResult("err", "❌ 失敗：" + (err.message || res.status));
+    }
+  } catch (e) {
+    showResult("err", "❌ 網路錯誤：" + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "<span>💬</span> 發送 LINE 測試通知";
+  }
+}
+
+function showResult(type, msg) {
+  const el = document.getElementById("sendResult");
+  el.className = "send-result " + type;
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
+async function init() {
+  updatePreview();
+  const price = await fetchQQQPrice();
+  document.getElementById("prev-price").textContent = price ? "$" + price : "市場休市";
+}
+
 // 初始載入
 loadData();
+init();
 </script>
 </body>
 </html>
