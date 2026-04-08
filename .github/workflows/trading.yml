@@ -25,4 +25,5 @@ jobs:
           LINE_CHANNEL_TOKEN: ${{ secrets.LINE_CHANNEL_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
           GAS_WEBHOOK_URL: ${{ secrets.GAS_WEBHOOK_URL }}
+          NOTIFY_ENABLED: "false"   # 暫停通知，確認 Alpaca 連線後改回 "true"
         run: python main.py

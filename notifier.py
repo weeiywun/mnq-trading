@@ -1,7 +1,15 @@
+import os
+import time
 import requests
 from config import LINE_CHANNEL_TOKEN, LINE_USER_ID
 
+NOTIFY_ENABLED = os.environ.get("NOTIFY_ENABLED", "true").lower() == "true"
+_ERROR_COOLDOWN_FILE = "/tmp/last_error_notify.txt"
+_ERROR_COOLDOWN_SECS = 3600  # 同樣的錯誤 1 小時內只發一次
+
 def push_line(message: str):
+    if not NOTIFY_ENABLED:
+        return
     requests.post(
         "https://api.line.me/v2/bot/message/push",
         headers={
@@ -44,4 +52,18 @@ def notify_blocked(reason: str):
     push_line(f"⛔ 今日停止交易\n原因：{reason}")
 
 def notify_error(err: str):
+    # 防止相同錯誤在短時間內重複發送
+    try:
+        if os.path.exists(_ERROR_COOLDOWN_FILE):
+            with open(_ERROR_COOLDOWN_FILE) as f:
+                last_ts, last_err = f.read().split("\n", 1)
+            if err.strip() == last_err.strip() and time.time() - float(last_ts) < _ERROR_COOLDOWN_SECS:
+                return
+    except Exception:
+        pass
+    try:
+        with open(_ERROR_COOLDOWN_FILE, "w") as f:
+            f.write(f"{time.time()}\n{err}")
+    except Exception:
+        pass
     push_line(f"❗ 系統異常\n{err}")

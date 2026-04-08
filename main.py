@@ -43,6 +43,9 @@ def main():
         logger.info(f"非交易時段 ({now.strftime('%H:%M')} ET)，今日結束")
         return
 
+    risk     = RiskManager()
+    strategy = ORBStrategy()
+
     # 1. 風控確認
     ok, reason = risk.can_trade()
     if not ok:
