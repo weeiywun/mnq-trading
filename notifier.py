@@ -3,7 +3,8 @@ import time
 import requests
 from config import LINE_CHANNEL_TOKEN, LINE_USER_ID
 
-NOTIFY_ENABLED = os.environ.get("NOTIFY_ENABLED", "true").lower() == "true"
+# 預設關閉；確認 Alpaca 連線正常後，請將 NOTIFY_ENABLED 設為 "true" 再重啟
+NOTIFY_ENABLED = os.environ.get("NOTIFY_ENABLED", "false").lower() == "true"
 _ERROR_COOLDOWN_FILE = "/tmp/last_error_notify.txt"
 _ERROR_COOLDOWN_SECS = 3600  # 同樣的錯誤 1 小時內只發一次
 
